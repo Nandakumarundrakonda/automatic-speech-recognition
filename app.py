@@ -163,7 +163,6 @@ if uploaded_file is not None:
                 # -----------------------------
                 segments = result.get("segments", [])
 
-                # Get text directly from segments
                 segment_texts = []
 
                 for segment in segments:
@@ -281,14 +280,82 @@ if uploaded_file is not None:
                         )
 
                 # -----------------------------
-                # Download
+                # Downloads
                 # -----------------------------
                 if transcription:
 
+                    # Download TXT
                     st.download_button(
                         label="⬇️ Download Transcript",
                         data=transcription,
                         file_name="transcription.txt",
+                        mime="text/plain",
+                        use_container_width=True
+                    )
+
+                    # -----------------------------
+                    # Create SRT Subtitle File
+                    # -----------------------------
+                    def format_srt_time(seconds):
+
+                        hours = int(seconds // 3600)
+
+                        minutes = int(
+                            (seconds % 3600) // 60
+                        )
+
+                        secs = int(seconds % 60)
+
+                        milliseconds = int(
+                            (seconds - int(seconds)) * 1000
+                        )
+
+                        return (
+                            f"{hours:02d}:"
+                            f"{minutes:02d}:"
+                            f"{secs:02d},"
+                            f"{milliseconds:03d}"
+                        )
+
+                    srt_content = ""
+
+                    for index, segment in enumerate(
+                        segments,
+                        start=1
+                    ):
+
+                        start = format_srt_time(
+                            segment["start"]
+                        )
+
+                        end = format_srt_time(
+                            segment["end"]
+                        )
+
+                        text = segment.get(
+                            "text",
+                            ""
+                        ).strip()
+
+                        if text:
+
+                            srt_content += (
+                                f"{index}\n"
+                            )
+
+                            srt_content += (
+                                f"{start} --> {end}\n"
+                            )
+
+                            srt_content += (
+                                f"{text}\n\n"
+                            )
+
+                    # Download SRT
+                    st.download_button(
+                        label="🎬 Download Subtitles (SRT)",
+                        data=srt_content,
+                        file_name="transcription.srt",
                         mime="text/plain",
                         use_container_width=True
                     )
